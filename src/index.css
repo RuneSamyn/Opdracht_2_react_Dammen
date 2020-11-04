@@ -1,13 +1,29 @@
 body {
     font: 14px "Century Gothic", Futura, sans-serif;
-    margin: 20px;
 }
 
-row {
-    display: inline;
+.col-container {
+    display: flex;
+    width: min-content;
+  }
+.col {
+    flex: 1;
+    padding: 10px;
 }
 
-square {
-    display: block;
+.square {
     border: 1px solid black;
+}
+
+.brown {
+    background-color: brown;
+}
+
+.white {
+    background-color: wheat;
+}
+
+.pion {
+    width: 40px;
+    height: 40px;
 }
