@@ -15,21 +15,170 @@ class Board extends React.Component {
       board[x] = "w";
       board[99-x] = "z";
     }
+    
+    /* gameboard variables:
+      z => zwart
+      w => wit
+      zd => zwart dam
+      wd => wit dam
+      zp => zwart possible
+      wp => wit possible
+      zdp => zwart dam possible
+      wdp => wit dam possible
+      x => no piece
+    */
+
+
     this.state = {
-      gameBoard: board
+      gameBoard: board,
+      player: "z",
+      pionSelected: null
     }
-    console.log(this.state.gameBoard)
+  }
+
+  onClickHandler(i) {
+    console.log(i)
+    const board = this.state.gameBoard;
+    this.setState({pionSelected: i})
+    // show possible moves to player
+    //    first: check if current player is black or white
+    if(board[i] === "z") {
+      this.setState({gameBoard: this.checkMovesZ(i)})
+    } else if(board[i] === "w") {
+      this.setState({gameBoard: this.checkMovesW(i)})
+    } else if(board[i] === "zd") {
+      this.setState({gameBoard: this.checkMovesZD(i)})
+    } else if(board[i] === "wd") {
+      this.setState({gameBoard: this.checkMovesWD(i)})
+    } else if(board[i] === "zp") {
+      this.setState({gameBoard: this.moveZ(i)})
+    } else if(board[i] === "wp") {
+      this.setState({gameBoard: this.moveW(i)})
+    } else if(board[i] === "zdp") {
+      this.setState({gameBoard: this.moveZD(i)})
+    } else if(board[i] === "wdp") {
+      this.setState({gameBoard: this.moveWD(i)})
+    } else if(board[i] === "x") {
+      // player didn't click on a piece
+      this.setState({pionSelected: null})
+      // delete all possible moves
+      this.setState({gameBoard: this.deleteAllPossibleMoves()})
+    }    
+  }
+
+  checkMovesZ(i) {
+    this.setState({pionSelected: i});
+    const board = this.deleteAllPossibleMoves();
+    var moveLpos = i - 11;
+    var moveRpos = i - 9;
+    // check if pieces are on the side of the Board
+    if(i % 10 === 0)
+      moveLpos = null;
+    if(i % 10 === 9)
+      moveRpos = null;
+    // check if you can jump over a white piece
+    if((board[moveLpos] === "w" || board[moveLpos] === "wd") && board[moveLpos - 11] === "x") {
+      moveLpos -= 11;
+    }
+    // check if there is no black piece before you
+    if(board[moveLpos] === "z" || board[moveLpos] === "zp") {
+      moveLpos = null;
+    }
+    if( board[moveRpos] === "z" || board[moveRpos] === "zp") {
+      moveRpos = null;
+    }
+    // update board
+    if(moveLpos != null)
+      board[moveLpos] = "zp";
+    if(moveRpos != null)
+      board[moveRpos] = "zp";
+    return board;
+  }
+  
+  checkMovesW(i) {
+    this.setState({pionSelected: i});
+    const board = this.deleteAllPossibleMoves();
+    var moveLpos = i + 9;
+    var moveRpos = i + 11;
+    // check if moves are not bocked
+    if((board[moveLpos] === "w" || board[moveLpos] === "wd") && board[moveLpos + 9] === "x") {
+      moveLpos += 9
+    }
+    // update board
+    board[moveLpos] = "zp";
+    board[moveRpos] = "zp";
+    return board;
+  }
+  
+  checkMovesZD(i) {
+    this.setState({pionSelected: i});
+    const board = this.deleteAllPossibleMoves();
+    var moveLpos = i - 11;
+    var moveRpos = i - 9;
+    // check if moves are not bocked
+    if((board[moveLpos] === "w" || board[moveLpos] === "wd") && board[moveLpos - 11] === "x") {
+      moveLpos -= 11
+    }
+    // update board
+    board[moveLpos] = "zp";
+    board[moveRpos] = "zp";
+    return board;
+  }
+
+  checkMovesWD(i) {
+    this.setState({pionSelected: i});
+    const board = this.deleteAllPossibleMoves();
+    var moveLpos = i - 11;
+    var moveRpos = i - 9;
+    // check if moves are not bocked
+    if((board[moveLpos] === "w" || board[moveLpos] === "wd") && board[moveLpos - 11] === "x") {
+      moveLpos -= 11
+    }
+    // update board
+    board[moveLpos] = "zp";
+    board[moveRpos] = "zp";
+    return board;
+  }
+  
+  moveZ(i) {
+    const board = this.deleteAllPossibleMoves();
+    board[i] = "z";
+    board[this.state.pionSelected] = "x";
+    return board
+  }
+  
+  moveW(i) {
+    
+  }
+  
+  moveZD(i) {
+    
+  }
+  
+  moveWD(i) {
+    
+  }
+
+  deleteAllPossibleMoves() {
+    const board = this.state.gameBoard;
+    for(let i = 0; i < 100; i++) {
+      if(board[i] === "zp" || board[i] === "wp" || board[i] === "zdp" || board[i] === "wdp") {
+        board[i] = "x";
+      }
+    }
+    return board
   }
 
   renderLine(i, array) {
       return <Line 
         value={i}
         array={array}
+        onClick={(i) => this.onClickHandler(i)}
       />;
   }
 
   render() {
-      const status = 'Next player: X';
+      const status = 'Next player: black';
   
       return (
       <div className="">
@@ -53,7 +202,8 @@ class Line extends React.Component {
   renderSquare(i, p) {
     return <Square 
       value={i}
-      pion={p} 
+      pion={p}
+      onClick={(i) => this.props.onClick(i)}
     />;
   }
   render() {
@@ -77,8 +227,10 @@ class Line extends React.Component {
 class Square extends React.Component {
     render() {
         return (
-          <button className={"square col" +(this.isBrown() ? " brown" : " white")}>
-              <img className="pion" src={this.imageUri(this.props.pion)}></img>
+          <button 
+            className={"square col" +(this.isBrown() ? " brown" : " white")}
+            onClick={() => this.props.onClick(this.props.value)}>
+              <img className="pion" src={this.imageUri(this.props.pion)}/>
           </button>
         )
     }
@@ -89,12 +241,26 @@ class Square extends React.Component {
       else if(pion === "wd") {
         return "/images/witD.png";
       }
+      else if(pion === "wp") {
+        return "/images/zwartP.png";
+      }
+      else if(pion === "wdp") {
+        return "/images/zwartDP.png";
+      }
       else if(pion === "z") {
         return "/images/zwart.png";
       }
       else if(pion === "zd") {
         return "/images/zwartD.png";
       }
+      else if(pion === "zp") {
+        return "/images/zwartP.png";
+      }
+      else if(pion === "zdp") {
+        return "/images/zwartDP.png";
+      }
+      else
+      return "none";
     }
 
     isBrown() {
