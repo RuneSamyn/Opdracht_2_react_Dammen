@@ -77,8 +77,17 @@ class Board extends React.Component {
     if(i % 10 === 9)
       moveRpos = null;
     // check if you can jump over a white piece
-    if((board[moveLpos] === "w" || board[moveLpos] === "wd") && board[moveLpos - 11] === "x") {
-      moveLpos -= 11;
+    if((board[moveLpos] === "w" || board[moveLpos] === "wd")) {
+      if(board[moveLpos - 11] === "x")
+        moveLpos -= 11;
+      else
+        moveLpos = null;
+    }
+    if((board[moveRpos] === "w" || board[moveRpos] === "wd")) {
+      if(board[moveRpos - 9] === "x")
+      moveRpos -= 9;
+      else
+      moveRpos = null;
     }
     // check if there is no black piece before you
     if(board[moveLpos] === "z" || board[moveLpos] === "zp") {
@@ -100,13 +109,36 @@ class Board extends React.Component {
     const board = this.deleteAllPossibleMoves();
     var moveLpos = i + 9;
     var moveRpos = i + 11;
-    // check if moves are not bocked
-    if((board[moveLpos] === "w" || board[moveLpos] === "wd") && board[moveLpos + 9] === "x") {
-      moveLpos += 9
+    // check if pieces are on the side of the Board
+    if(i % 10 === 0)
+      moveRpos = null;
+    if(i % 10 === 9)
+      moveLpos = null;
+    // check if you can jump over a white piece
+    if((board[moveLpos] === "z" || board[moveLpos] === "zd")) {
+      if(board[moveLpos + 9] === "x")
+        moveLpos += 9;
+      else
+        moveLpos = null;
+    }
+    if((board[moveRpos] === "z" || board[moveRpos] === "zd")) {
+      if(board[moveRpos + 11] === "x")
+      moveRpos += 11;
+      else
+      moveRpos = null;
+    }
+    // check if there is no black piece before you
+    if(board[moveLpos] === "w" || board[moveLpos] === "wp") {
+      moveLpos = null;
+    }
+    if( board[moveRpos] === "w" || board[moveRpos] === "wp") {
+      moveRpos = null;
     }
     // update board
-    board[moveLpos] = "zp";
-    board[moveRpos] = "zp";
+    if(moveLpos != null)
+      board[moveLpos] = "wp";
+    if(moveRpos != null)
+      board[moveRpos] = "wp";
     return board;
   }
   
@@ -148,7 +180,10 @@ class Board extends React.Component {
   }
   
   moveW(i) {
-    
+    const board = this.deleteAllPossibleMoves();
+    board[i] = "w";
+    board[this.state.pionSelected] = "x";
+    return board
   }
   
   moveZD(i) {
@@ -242,10 +277,10 @@ class Square extends React.Component {
         return "/images/witD.png";
       }
       else if(pion === "wp") {
-        return "/images/zwartP.png";
+        return "/images/witP.png";
       }
       else if(pion === "wdp") {
-        return "/images/zwartDP.png";
+        return "/images/witDP.png";
       }
       else if(pion === "z") {
         return "/images/zwart.png";
@@ -260,7 +295,7 @@ class Square extends React.Component {
         return "/images/zwartDP.png";
       }
       else
-      return "none";
+        return "none";
     }
 
     isBrown() {
