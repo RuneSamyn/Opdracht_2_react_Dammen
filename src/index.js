@@ -192,24 +192,25 @@ class Game extends React.Component {
   onClickHandler(i) {
     console.log(i)
     const board = this.state.gameBoard;
+    const player = this.state.nextPlayer;
     this.setState({pionSelected: i})
     // show possible moves to player
     //    first: check if current player is black or white
-    if(board[i] === "z") {
+    if(board[i] === "z" && player === "Zwart") {
       this.setState({gameBoard: this.checkMovesZ(i)})
-    } else if(board[i] === "w") {
+    } else if(board[i] === "w" && player === "Wit") {
       this.setState({gameBoard: this.checkMovesW(i)})
-    } else if(board[i] === "zd") {
+    } else if(board[i] === "zd" && player === "Zwart") {
       this.setState({gameBoard: this.checkMovesZD(i)})
-    } else if(board[i] === "wd") {
+    } else if(board[i] === "wd" && player === "Wit") {
       this.setState({gameBoard: this.checkMovesWD(i)})
-    } else if(board[i] === "zp") {
+    } else if(board[i] === "zp" && player === "Zwart") {
       this.setState({gameBoard: this.moveZ(i)})
-    } else if(board[i] === "wp") {
+    } else if(board[i] === "wp" && player === "Wit") {
       this.setState({gameBoard: this.moveW(i)})
-    } else if(board[i] === "zdp") {
+    } else if(board[i] === "zdp" && player === "Zwart") {
       this.setState({gameBoard: this.moveZD(i)})
-    } else if(board[i] === "wdp") {
+    } else if(board[i] === "wdp" && player === "Wit") {
       this.setState({gameBoard: this.moveWD(i)})
     } else if(board[i] === "x") {
       // player didn't click on a piece
@@ -351,6 +352,7 @@ class Game extends React.Component {
       this.addPoint("z")
       this.setState({possibleKill: {}})
     }
+    this.setState({nextPlayer: "Wit"})
     return board
   }
   
@@ -364,15 +366,16 @@ class Game extends React.Component {
       this.addPoint("w")
       this.setState({possibleKill: {}})
     }
+    this.setState({nextPlayer: "Zwart"})
     return board
   }
   
   moveZD(i) {
-    
+    this.setState({nextPlayer: "Wit"})
   }
   
   moveWD(i) {
-    
+    this.setState({nextPlayer: "Zwart"})
   }
 
   deleteAllPossibleMoves() {
