@@ -7,6 +7,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 class Board extends React.Component {
   constructor(props) {
     super(props);
+    // initialize gameboard. set all pieces in begin position
     var board = Array(100).fill("x");
     for (var i = 0; i < 20; i++) {
       var x = 2*i;
@@ -28,14 +29,11 @@ class Board extends React.Component {
       x => no piece
     */
 
-
     this.state = {
       gameBoard: board,
       player: "z",
       pionSelected: null,
       possibleKill: {},
-      scoreZwart: 0,
-      scoreWit: 0
     }
   }
 
@@ -81,7 +79,7 @@ class Board extends React.Component {
       moveRpos = null;
     // check if you can jump over a white piece
     if((board[moveLpos] === "w" || board[moveLpos] === "wd")) {
-      if(board[moveLpos - 11] === "x" && moveLpos % 10 != 0) {
+      if(board[moveLpos - 11] === "x" && moveLpos % 10 !== 0) {
         moveLpos -= 11;
         //add possible kill
         var kills = this.state.possibleKill;
@@ -91,7 +89,7 @@ class Board extends React.Component {
         moveLpos = null;
     }
     if((board[moveRpos] === "w" || board[moveRpos] === "wd")) {
-      if(board[moveRpos - 9] === "x" && moveRpos % 10 != 9) {
+      if(board[moveRpos - 9] === "x" && moveRpos % 10 !== 9) {
         moveRpos -= 9;
         //add possible kill
         var kills = this.state.possibleKill;
@@ -127,7 +125,7 @@ class Board extends React.Component {
       moveRpos = null;
     // check if you can jump over a white piece
     if((board[moveLpos] === "z" || board[moveLpos] === "zd")) {
-      if(board[moveLpos + 9] === "x" && moveLpos % 10 != 0) {
+      if(board[moveLpos + 9] === "x" && moveLpos % 10 !== 0) {
         moveLpos += 9;
         //add possible kill
         var kills = this.state.possibleKill;
@@ -137,7 +135,7 @@ class Board extends React.Component {
         moveLpos = null;
     }
     if((board[moveRpos] === "z" || board[moveRpos] === "zd")) {
-      if(board[moveRpos + 11] === "x" && moveRpos % 10 != 9) {
+      if(board[moveRpos + 11] === "x" && moveRpos % 10 !== 9) {
         moveRpos += 11;
         //add possible kill
         var kills = this.state.possibleKill;
@@ -196,9 +194,9 @@ class Board extends React.Component {
     board[i] = "z";
     board[this.state.pionSelected] = "x";
     console.log(this.state.possibleKill[i]);
-    if(this.state.possibleKill[i] !== "undefined"){
+    if(this.state.possibleKill[i] >= 0){
       board[this.state.possibleKill[i]] = "x";
-      this.setState({scoreZwart: this.state.scoreZwart+1})
+      this.props.addPoint("z")
       this.setState({possibleKill: {}})
     }
     return board
@@ -209,8 +207,10 @@ class Board extends React.Component {
     board[i] = "w";
     board[this.state.pionSelected] = "x";
     console.log(this.state.possibleKill[i]);
-    if(this.state.possibleKill[i] !== "undefined"){
+    if(this.state.possibleKill[i] >= 0){
       board[this.state.possibleKill[i]] = "x";
+      this.props.addPoint("w")
+      this.setState({possibleKill: {}})
     }
     return board
   }
@@ -332,20 +332,99 @@ class Square extends React.Component {
 }
 
 class Game extends React.Component {
-    render() {
-      return (
-        <div className="game container mt-5">
-          <div className="game-board">
-            <Board />
-          </div>
-          <div className="game-info">
-            <div>{/* status */}</div>
-            <ol>{/* TODO */}</ol>
-          </div>
-        </div>
-      );
+  constructor(props) {
+    super(props);
+
+
+    this.state = {
+      scoreWit: [0],
+      scoreZwart: [0],
+      gameNr: 0,
+      nextPlayer: "Wit"
     }
   }
+
+  addPoint(p) {
+    var newScore = 0;
+    if(p === "w") {
+      newScore = this.state.scoreWit;
+      newScore[this.state.gameNr] += 20;
+      if(newScore[this.state.gameNr] === 20) {
+        this.startNewGame();
+      }
+      this.setState({ scoreWit: newScore})
+    }
+    else {
+      newScore = this.state.scoreZwart;
+      newScore[this.state.gameNr] += 1;
+      if(newScore[this.state.gameNr] === 20) {
+        this.startNewGame();
+      }
+      this.setState({ scoreZwart: newScore})
+    }
+
+  }
+
+  startNewGame() {
+    // increase number of games with 1
+    this.setState({gameNr: this.state.gameNr+1})
+    // add new score for white player
+    var scoreWit = this.state.scoreWit;
+    scoreWit.push(0);
+    this.setState({scoreWit: scoreWit});
+    // add new score for black player
+    var scoreZwart = this.state.scoreZwart;
+    scoreZwart.push(0);
+    this.setState({scoreZwart: scoreZwart});
+  }
+
+  initializeGameBoard() {
+    // initialize gameboard. set all pieces in begin position
+    var board = Array(100).fill("x");
+    for (var i = 0; i < 20; i++) {
+      var x = 2*i;
+      if((x >= 10 && x < 20) || (x >= 30 && x < 40) )
+        x++;
+      board[x] = "w";
+      board[99-x] = "z";
+    }
+  }
+
+  render() {
+    const scores = () => {
+      var elements = []
+      for(var i = 0; i <= this.state.gameNr; i++) {
+        elements.push(
+          <tr>
+            <td>{this.state.scoreWit[i]}</td>
+            <td>{this.state.scoreZwart[i]}</td> 
+          </tr>
+        )
+      }
+      return elements
+    }
+
+    return (
+      <div className="game container mt-5">
+        <div className="game-board">
+          <Board
+            addPoint={p => this.addPoint(p)} 
+          />
+        </div>
+        <div className="game-info">
+          <p className="nextPlayer">Next player: {this.state.nextPlayer}</p>
+          <table className="scoreboard">
+            <tr>
+              <th>Wit</th>
+              <th>Zwart</th> 
+            </tr>
+            {scores()}
+          </table>
+        </div>
+      </div>
+    );
+  }
+}
 
 ReactDOM.render(
     <Game />,

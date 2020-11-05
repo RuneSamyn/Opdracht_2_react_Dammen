@@ -32,3 +32,38 @@ body {
 img[src="none"] { 
     display: none; 
 }
+
+.game {
+    display: flex;
+    flex-direction: row;
+}
+
+.game-info {
+    margin-left: 15px;
+    width: 100%;
+}
+
+.nextPlayer {
+    font-size: 30px;
+    text-align: center;
+}
+.scoreboard {
+    border-top: black solid;
+    text-align: center;
+    width: 100%;
+}
+
+th {
+    border-bottom: black solid;
+    width: 50%;
+    padding: 10px;
+    font-size: 20px;
+}
+
+tr th:first-child {
+    border-right: black solid;
+}
+
+tr td:first-child {
+    border-right: black solid;
+}
