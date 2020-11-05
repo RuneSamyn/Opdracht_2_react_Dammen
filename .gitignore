@@ -10,7 +10,8 @@
 
 # production
 /build
-/cordova/dammen/www
+/cordova/dammen/www/*
+!/cordova/dammen/www/.gitkeep
 
 # misc
 .DS_Store
