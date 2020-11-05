@@ -32,7 +32,10 @@ class Board extends React.Component {
     this.state = {
       gameBoard: board,
       player: "z",
-      pionSelected: null
+      pionSelected: null,
+      possibleKill: {},
+      scoreZwart: 0,
+      scoreWit: 0
     }
   }
 
@@ -78,14 +81,22 @@ class Board extends React.Component {
       moveRpos = null;
     // check if you can jump over a white piece
     if((board[moveLpos] === "w" || board[moveLpos] === "wd")) {
-      if(board[moveLpos - 11] === "x")
+      if(board[moveLpos - 11] === "x" && moveLpos % 10 != 0) {
         moveLpos -= 11;
+        //add possible kill
+        var kills = this.state.possibleKill;
+        kills[moveLpos] = moveLpos + 11;
+      }
       else
         moveLpos = null;
     }
     if((board[moveRpos] === "w" || board[moveRpos] === "wd")) {
-      if(board[moveRpos - 9] === "x")
-      moveRpos -= 9;
+      if(board[moveRpos - 9] === "x" && moveRpos % 10 != 9) {
+        moveRpos -= 9;
+        //add possible kill
+        var kills = this.state.possibleKill;
+        kills[moveRpos] = moveRpos + 9;
+      }
       else
       moveRpos = null;
     }
@@ -111,19 +122,27 @@ class Board extends React.Component {
     var moveRpos = i + 11;
     // check if pieces are on the side of the Board
     if(i % 10 === 0)
-      moveRpos = null;
-    if(i % 10 === 9)
       moveLpos = null;
+    if(i % 10 === 9)
+      moveRpos = null;
     // check if you can jump over a white piece
     if((board[moveLpos] === "z" || board[moveLpos] === "zd")) {
-      if(board[moveLpos + 9] === "x")
+      if(board[moveLpos + 9] === "x" && moveLpos % 10 != 0) {
         moveLpos += 9;
+        //add possible kill
+        var kills = this.state.possibleKill;
+        kills[moveLpos] = moveLpos - 9;
+      }
       else
         moveLpos = null;
     }
     if((board[moveRpos] === "z" || board[moveRpos] === "zd")) {
-      if(board[moveRpos + 11] === "x")
-      moveRpos += 11;
+      if(board[moveRpos + 11] === "x" && moveRpos % 10 != 9) {
+        moveRpos += 11;
+        //add possible kill
+        var kills = this.state.possibleKill;
+        kills[moveRpos] = moveRpos - 11;
+      }
       else
       moveRpos = null;
     }
@@ -176,6 +195,12 @@ class Board extends React.Component {
     const board = this.deleteAllPossibleMoves();
     board[i] = "z";
     board[this.state.pionSelected] = "x";
+    console.log(this.state.possibleKill[i]);
+    if(this.state.possibleKill[i] !== "undefined"){
+      board[this.state.possibleKill[i]] = "x";
+      this.setState({scoreZwart: this.state.scoreZwart+1})
+      this.setState({possibleKill: {}})
+    }
     return board
   }
   
@@ -183,6 +208,10 @@ class Board extends React.Component {
     const board = this.deleteAllPossibleMoves();
     board[i] = "w";
     board[this.state.pionSelected] = "x";
+    console.log(this.state.possibleKill[i]);
+    if(this.state.possibleKill[i] !== "undefined"){
+      board[this.state.possibleKill[i]] = "x";
+    }
     return board
   }
   
@@ -212,12 +241,9 @@ class Board extends React.Component {
       />;
   }
 
-  render() {
-      const status = 'Next player: black';
-  
+  render() {  
       return (
       <div className="">
-        <div className="status">{status}</div>
         {this.renderLine(0, this.state.gameBoard.slice(0, 10))}
         {this.renderLine(10, this.state.gameBoard.slice(10, 20))}
         {this.renderLine(20, this.state.gameBoard.slice(20, 30))}
@@ -308,7 +334,7 @@ class Square extends React.Component {
 class Game extends React.Component {
     render() {
       return (
-        <div className="game container">
+        <div className="game container mt-5">
           <div className="game-board">
             <Board />
           </div>
