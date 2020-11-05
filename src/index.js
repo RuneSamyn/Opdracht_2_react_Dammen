@@ -5,9 +5,109 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 
 class Board extends React.Component {
+    
+  renderLine(i, array) {
+      return <Line 
+        value={i}
+        array={array}
+        onClick={(i) => this.props.onClickHandler(i)}
+      />;
+  }
+
+  render() {  
+      return (
+      <div className="">
+        {this.renderLine(0, this.props.gameBoard.slice(0, 10))}
+        {this.renderLine(10, this.props.gameBoard.slice(10, 20))}
+        {this.renderLine(20, this.props.gameBoard.slice(20, 30))}
+        {this.renderLine(30, this.props.gameBoard.slice(30, 40))}
+        {this.renderLine(40, this.props.gameBoard.slice(40, 50))}
+        {this.renderLine(50, this.props.gameBoard.slice(50, 60))}
+        {this.renderLine(60, this.props.gameBoard.slice(60, 70))}
+        {this.renderLine(70, this.props.gameBoard.slice(70, 80))}
+        {this.renderLine(80, this.props.gameBoard.slice(80, 90))}
+        {this.renderLine(90, this.props.gameBoard.slice(90, 100))}
+      </div>
+      );
+    }
+}
+
+class Line extends React.Component {
+  renderSquare(i, p) {
+    return <Square 
+      value={i}
+      pion={p}
+      onClick={(i) => this.props.onClick(i)}
+    />;
+  }
+  render() {
+      return (
+        <div className="col-container">
+            {this.renderSquare(0 + this.props.value, this.props.array[0])}
+            {this.renderSquare(1 + this.props.value, this.props.array[1])}
+            {this.renderSquare(2 + this.props.value, this.props.array[2])}
+            {this.renderSquare(3 + this.props.value, this.props.array[3])}
+            {this.renderSquare(4 + this.props.value, this.props.array[4])}
+            {this.renderSquare(5 + this.props.value, this.props.array[5])}
+            {this.renderSquare(6 + this.props.value, this.props.array[6])}
+            {this.renderSquare(7 + this.props.value, this.props.array[7])}
+            {this.renderSquare(8 + this.props.value, this.props.array[8])}
+            {this.renderSquare(9 + this.props.value, this.props.array[9])}
+          </div>
+      )
+  }
+}
+
+class Square extends React.Component {
+    render() {
+        return (
+          <button 
+            className={"square col" +(this.isBrown() ? " brown" : " white")}
+            onClick={() => this.props.onClick(this.props.value)}>
+              <img className="pion" src={this.imageUri(this.props.pion)}/>
+          </button>
+        )
+    }
+    imageUri(pion) {
+      if(pion === "w") {
+        return "/images/wit.png";
+      }
+      else if(pion === "wd") {
+        return "/images/witD.png";
+      }
+      else if(pion === "wp") {
+        return "/images/witP.png";
+      }
+      else if(pion === "wdp") {
+        return "/images/witDP.png";
+      }
+      else if(pion === "z") {
+        return "/images/zwart.png";
+      }
+      else if(pion === "zd") {
+        return "/images/zwartD.png";
+      }
+      else if(pion === "zp") {
+        return "/images/zwartP.png";
+      }
+      else if(pion === "zdp") {
+        return "/images/zwartDP.png";
+      }
+      else
+        return "none";
+    }
+
+    isBrown() {
+      var evenCol = this.props.value % 2;
+      var evenLine = ((this.props.value - this.props.value % 10) / 10) %2
+      return evenLine ? evenCol : !evenCol;
+    }
+}
+
+class Game extends React.Component {
   constructor(props) {
     super(props);
-    // initialize gameboard. set all pieces in begin position
+
     var board = Array(100).fill("x");
     for (var i = 0; i < 20; i++) {
       var x = 2*i;
@@ -16,7 +116,7 @@ class Board extends React.Component {
       board[x] = "w";
       board[99-x] = "z";
     }
-    
+
     /* gameboard variables:
       z => zwart
       w => wit
@@ -31,12 +131,64 @@ class Board extends React.Component {
 
     this.state = {
       gameBoard: board,
-      player: "z",
+      scoreWit: [0],
+      scoreZwart: [0],
+      gameNr: 0,
+      nextPlayer: "Wit",
       pionSelected: null,
       possibleKill: {},
     }
   }
 
+  addPoint(p) {
+    var newScore = 0;
+    if(p === "w") {
+      newScore = this.state.scoreWit;
+      newScore[this.state.gameNr] += 1;
+      if(newScore[this.state.gameNr] === 20) {
+        this.startNewGame();
+      }
+      this.setState({ scoreWit: newScore})
+    }
+    else {
+      newScore = this.state.scoreZwart;
+      newScore[this.state.gameNr] += 1;
+      if(newScore[this.state.gameNr] === 20) {
+        this.startNewGame();
+      }
+      this.setState({ scoreZwart: newScore})
+    }
+
+  }
+
+  startNewGame() {
+    // increase number of games with 1
+    this.setState({gameNr: this.state.gameNr+1})
+    // add new score for white player
+    var scoreWit = this.state.scoreWit;
+    scoreWit.push(0);
+    this.setState({scoreWit: scoreWit});
+    // add new score for black player
+    var scoreZwart = this.state.scoreZwart;
+    scoreZwart.push(0);
+    this.setState({scoreZwart: scoreZwart});
+    this.setState({gameBoard: this.initializeGameBoard()});
+  }
+
+  initializeGameBoard() {
+    // initialize gameboard. set all pieces in begin position
+    const board = this.state.gameBoard;
+    board.fill("x")
+    for (var i = 0; i < 20; i++) {
+      var x = 2*i;
+      if((x >= 10 && x < 20) || (x >= 30 && x < 40) )
+        x++;
+      board[x] = "w";
+      board[99-x] = "z";
+    }
+    return board;
+  }
+  
   onClickHandler(i) {
     console.log(i)
     const board = this.state.gameBoard;
@@ -196,7 +348,7 @@ class Board extends React.Component {
     console.log(this.state.possibleKill[i]);
     if(this.state.possibleKill[i] >= 0){
       board[this.state.possibleKill[i]] = "x";
-      this.props.addPoint("z")
+      this.addPoint("z")
       this.setState({possibleKill: {}})
     }
     return board
@@ -209,7 +361,7 @@ class Board extends React.Component {
     console.log(this.state.possibleKill[i]);
     if(this.state.possibleKill[i] >= 0){
       board[this.state.possibleKill[i]] = "x";
-      this.props.addPoint("w")
+      this.addPoint("w")
       this.setState({possibleKill: {}})
     }
     return board
@@ -233,163 +385,6 @@ class Board extends React.Component {
     return board
   }
 
-  renderLine(i, array) {
-      return <Line 
-        value={i}
-        array={array}
-        onClick={(i) => this.onClickHandler(i)}
-      />;
-  }
-
-  render() {  
-      return (
-      <div className="">
-        {this.renderLine(0, this.state.gameBoard.slice(0, 10))}
-        {this.renderLine(10, this.state.gameBoard.slice(10, 20))}
-        {this.renderLine(20, this.state.gameBoard.slice(20, 30))}
-        {this.renderLine(30, this.state.gameBoard.slice(30, 40))}
-        {this.renderLine(40, this.state.gameBoard.slice(40, 50))}
-        {this.renderLine(50, this.state.gameBoard.slice(50, 60))}
-        {this.renderLine(60, this.state.gameBoard.slice(60, 70))}
-        {this.renderLine(70, this.state.gameBoard.slice(70, 80))}
-        {this.renderLine(80, this.state.gameBoard.slice(80, 90))}
-        {this.renderLine(90, this.state.gameBoard.slice(90, 100))}
-      </div>
-      );
-    }
-}
-
-class Line extends React.Component {
-  renderSquare(i, p) {
-    return <Square 
-      value={i}
-      pion={p}
-      onClick={(i) => this.props.onClick(i)}
-    />;
-  }
-  render() {
-      return (
-        <div className="col-container">
-            {this.renderSquare(0 + this.props.value, this.props.array[0])}
-            {this.renderSquare(1 + this.props.value, this.props.array[1])}
-            {this.renderSquare(2 + this.props.value, this.props.array[2])}
-            {this.renderSquare(3 + this.props.value, this.props.array[3])}
-            {this.renderSquare(4 + this.props.value, this.props.array[4])}
-            {this.renderSquare(5 + this.props.value, this.props.array[5])}
-            {this.renderSquare(6 + this.props.value, this.props.array[6])}
-            {this.renderSquare(7 + this.props.value, this.props.array[7])}
-            {this.renderSquare(8 + this.props.value, this.props.array[8])}
-            {this.renderSquare(9 + this.props.value, this.props.array[9])}
-          </div>
-      )
-  }
-}
-
-class Square extends React.Component {
-    render() {
-        return (
-          <button 
-            className={"square col" +(this.isBrown() ? " brown" : " white")}
-            onClick={() => this.props.onClick(this.props.value)}>
-              <img className="pion" src={this.imageUri(this.props.pion)}/>
-          </button>
-        )
-    }
-    imageUri(pion) {
-      if(pion === "w") {
-        return "/images/wit.png";
-      }
-      else if(pion === "wd") {
-        return "/images/witD.png";
-      }
-      else if(pion === "wp") {
-        return "/images/witP.png";
-      }
-      else if(pion === "wdp") {
-        return "/images/witDP.png";
-      }
-      else if(pion === "z") {
-        return "/images/zwart.png";
-      }
-      else if(pion === "zd") {
-        return "/images/zwartD.png";
-      }
-      else if(pion === "zp") {
-        return "/images/zwartP.png";
-      }
-      else if(pion === "zdp") {
-        return "/images/zwartDP.png";
-      }
-      else
-        return "none";
-    }
-
-    isBrown() {
-      var evenCol = this.props.value % 2;
-      var evenLine = ((this.props.value - this.props.value % 10) / 10) %2
-      return evenLine ? evenCol : !evenCol;
-    }
-}
-
-class Game extends React.Component {
-  constructor(props) {
-    super(props);
-
-
-    this.state = {
-      scoreWit: [0],
-      scoreZwart: [0],
-      gameNr: 0,
-      nextPlayer: "Wit"
-    }
-  }
-
-  addPoint(p) {
-    var newScore = 0;
-    if(p === "w") {
-      newScore = this.state.scoreWit;
-      newScore[this.state.gameNr] += 20;
-      if(newScore[this.state.gameNr] === 20) {
-        this.startNewGame();
-      }
-      this.setState({ scoreWit: newScore})
-    }
-    else {
-      newScore = this.state.scoreZwart;
-      newScore[this.state.gameNr] += 1;
-      if(newScore[this.state.gameNr] === 20) {
-        this.startNewGame();
-      }
-      this.setState({ scoreZwart: newScore})
-    }
-
-  }
-
-  startNewGame() {
-    // increase number of games with 1
-    this.setState({gameNr: this.state.gameNr+1})
-    // add new score for white player
-    var scoreWit = this.state.scoreWit;
-    scoreWit.push(0);
-    this.setState({scoreWit: scoreWit});
-    // add new score for black player
-    var scoreZwart = this.state.scoreZwart;
-    scoreZwart.push(0);
-    this.setState({scoreZwart: scoreZwart});
-  }
-
-  initializeGameBoard() {
-    // initialize gameboard. set all pieces in begin position
-    var board = Array(100).fill("x");
-    for (var i = 0; i < 20; i++) {
-      var x = 2*i;
-      if((x >= 10 && x < 20) || (x >= 30 && x < 40) )
-        x++;
-      board[x] = "w";
-      board[99-x] = "z";
-    }
-  }
-
   render() {
     const scores = () => {
       var elements = []
@@ -408,7 +403,8 @@ class Game extends React.Component {
       <div className="game container mt-5">
         <div className="game-board">
           <Board
-            addPoint={p => this.addPoint(p)} 
+            gameBoard={this.state.gameBoard}
+            onClickHandler={i => this.onClickHandler(i)}
           />
         </div>
         <div className="game-info">
